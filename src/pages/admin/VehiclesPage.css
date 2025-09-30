@@ -1,0 +1,42 @@
+/* VehiclesPage.css */
+
+.vehicles-container {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.vehicles-table {
+    border-collapse: collapse;
+    width: 90%;
+    max-width: 1200px;
+    text-align: left;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vehicles-table th,
+.vehicles-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+}
+
+.vehicles-table th {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+}
+
+.vehicles-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.vehicles-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.vehicle-image {
+    width: 80px;
+    height: auto;
+    border-radius: 4px;
+}
