@@ -1,0 +1,28 @@
+.modal-backdrop {
+    position: fixed;
+    /* Fiksiran u odnosu na cijeli viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* tamna pozadina */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* centrirano vertikalno i horizontalno */
+    z-index: 1000;
+    /* iznad ostalog sadržaja */
+}
+
+.modal {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    /* širina modala */
+    max-width: 90%;
+    /* responsivnost */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
