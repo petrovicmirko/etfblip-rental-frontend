@@ -1,12 +1,15 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import { Box } from "@mui/material";
 
 const DashboardLayout = ({ role: propRole }) => {
-    const navigate = useNavigate();
     const role = propRole || localStorage.getItem("role") || "OPERATOR";
 
     const logout = () => {
         localStorage.clear();
-        navigate("/login");
+        window.location.href = "/login";
     };
 
     const menus = {
@@ -35,52 +38,16 @@ const DashboardLayout = ({ role: propRole }) => {
     const roleMenu = menus[role] || [];
 
     return (
-        <div className="layout-root">
-            {/* Sidebar */}
-            <aside className="sidebar">
-                <div className="sidebar-top">
-                    <div className="brand" onClick={() => navigate(`/${role.toLowerCase()}`)}>
-                        <div className="brand-logo">⚡</div>
-                        <div className="brand-text">ETFBL_IP</div>
-                    </div>
-                </div>
+        <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#ECF0F1" }}>
+            <Sidebar role={role} menuItems={roleMenu} />
 
-                <nav className="menu">
-                    <div className="menu-section-title">{role} panel</div>
-                    {roleMenu.map((m) => (
-                        <NavLink
-                            key={m.to}
-                            to={m.to}
-                            className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
-                        >
-                            <span className="menu-label">{m.label}</span>
-                        </NavLink>
-                    ))}
-                </nav>
-
-                <div className="sidebar-bottom">
-                    <div className="sidebar-user">Uloga: <strong>{role}</strong></div>
-                    <button className="logout-btn" onClick={logout}>Logout</button>
-                </div>
-            </aside>
-
-            {/* Main content */}
-            <main className="main">
-                <header className="topbar">
-                    <div className="topbar-left">
-                        <h3 className="page-title">Welcome, {role}</h3>
-                    </div>
-                    <div className="topbar-right">
-                        <span className="app-name">🚀 Rental System</span>
-                        <button className="logout-inline" onClick={logout}>Logout</button>
-                    </div>
-                </header>
-
-                <section className="content">
+            <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                <Navbar onLogout={logout} />
+                <Box sx={{ p: 3, flexGrow: 1 }}>
                     <Outlet />
-                </section>
-            </main>
-        </div>
+                </Box>
+            </Box>
+        </Box>
     );
 };
 

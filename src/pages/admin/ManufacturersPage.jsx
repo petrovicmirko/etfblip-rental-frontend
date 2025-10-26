@@ -1,14 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { getManufacturers, createManufacturer, updateManufacturer, deleteManufacturer } from "../../services/apiService";
-import "../../styles/global.css";
+import {
+    Container,
+    Box,
+    Typography,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TextField,
+    CircularProgress,
+    Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+    getManufacturers,
+    createManufacturer,
+    updateManufacturer,
+    deleteManufacturer,
+} from "../../services/apiService";
 
 const ManufacturersPage = () => {
     const [manufacturers, setManufacturers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
     const [newName, setNewName] = useState("");
-    const [editModal, setEditModal] = useState({ isOpen: false, id: null, name: "" });
+    const [editModal, setEditModal] = useState({ open: false, id: null, name: "" });
 
     const fetchManufacturers = async () => {
         try {
@@ -37,11 +63,11 @@ const ManufacturersPage = () => {
         }
     };
 
-    const handleUpdate = async (id, name) => {
-        if (!name.trim()) return;
+    const handleUpdate = async () => {
+        if (!editModal.name.trim()) return;
         try {
-            await updateManufacturer(id, { name });
-            closeModal();
+            await updateManufacturer(editModal.id, { name: editModal.name });
+            handleCloseModal();
             fetchManufacturers();
         } catch (err) {
             console.error("Failed to update manufacturer:", err);
@@ -58,76 +84,140 @@ const ManufacturersPage = () => {
         }
     };
 
-    const openModal = (m) => {
-        setEditModal({ isOpen: true, id: m.id, name: m.name });
+    const handleOpenModal = (m) => {
+        setEditModal({ open: true, id: m.id, name: m.name });
     };
 
-    const closeModal = () => {
-        setEditModal({ isOpen: false, id: null, name: "" });
+    const handleCloseModal = () => {
+        setEditModal({ open: false, id: null, name: "" });
     };
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    if (loading)
+        return (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+                <CircularProgress />
+            </Box>
+        );
+
+    if (error)
+        return (
+            <Alert severity="error" sx={{ mt: 4, mx: "auto", width: "fit-content" }}>
+                {error}
+            </Alert>
+        );
 
     return (
-        <div className="manufacturers-container">
-            <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Manufacturers</h1>
+        <Container maxWidth="lg" sx={{ mt: 4 }}>
+            <Typography variant="h4" gutterBottom fontWeight="bold">
+                Manufacturers Management
+            </Typography>
 
-            <div className="form-inline">
-                <input
-                    type="text"
+            {/* === Forma za dodavanje === */}
+            <Box
+                sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 2,
+                    mb: 3,
+                }}
+            >
+                <TextField
+                    label="Manufacturer name"
+                    variant="outlined"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Enter manufacturer name"
+                    sx={{ flex: 1, minWidth: "250px" }}
                 />
-                <button className="primary-btn" onClick={handleAdd}>Add</button>
-            </div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={handleAdd}
+                    sx={{ height: "56px" }}
+                >
+                    Add
+                </Button>
+            </Box>
 
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {!loading && manufacturers.length === 0 && (
-                        <tr>
-                            <td colSpan="3">No manufacturers found</td>
-                        </tr>
-                    )}
-                    {manufacturers.map((m) => (
-                        <tr key={m.id}>
-                            <td>{m.id}</td>
-                            <td>{m.name}</td>
-                            <td>
-                                <button className="primary-btn" onClick={() => openModal(m)}>Edit</button>
-                                <button className="danger-btn" onClick={() => handleDelete(m.id)}>Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            {/* === Tabela === */}
+            <TableContainer component={Paper} elevation={3}>
+                <Table>
+                    <TableHead>
+                        <TableRow sx={{ backgroundColor: "#1976d2" }}>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
 
-            {/* Modal */}
-            {editModal.isOpen && (
-                <div className="modal-backdrop">
-                    <div className="modal">
-                        <h2>Edit Manufacturer</h2>
-                        <input
-                            type="text"
-                            value={editModal.name}
-                            onChange={(e) => setEditModal({ ...editModal, name: e.target.value })}
-                        />
-                        <div style={{ marginTop: "10px" }}>
-                            <button className="primary-btn" onClick={() => handleUpdate(editModal.id, editModal.name)}>Save</button>
-                            <button className="secondary-btn" onClick={closeModal} style={{ marginLeft: "10px" }}>Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                    <TableBody>
+                        {manufacturers.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={2} align="center">
+                                    No manufacturers found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            manufacturers.map((m) => (
+                                <TableRow key={m.id} hover>
+                                    {/* Uklonjena kolona za ID */}
+                                    <TableCell>{m.name}</TableCell>
+                                    <TableCell>
+                                        <Box sx={{ display: "flex", gap: 1 }}>
+                                            <Button
+                                                variant="outlined"
+                                                color="primary"
+                                                size="small"
+                                                startIcon={<EditIcon />}
+                                                onClick={() => handleOpenModal(m)}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                color="error"
+                                                size="small"
+                                                startIcon={<DeleteIcon />}
+                                                onClick={() => handleDelete(m.id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+
+                </Table>
+            </TableContainer>
+
+            {/* === Modal za edit === */}
+            <Dialog open={editModal.open} onClose={handleCloseModal}>
+                <DialogTitle>Edit Manufacturer</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Manufacturer name"
+                        fullWidth
+                        variant="outlined"
+                        value={editModal.name}
+                        onChange={(e) =>
+                            setEditModal({ ...editModal, name: e.target.value })
+                        }
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseModal} color="secondary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleUpdate} variant="contained" color="primary">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Container>
     );
 };
 

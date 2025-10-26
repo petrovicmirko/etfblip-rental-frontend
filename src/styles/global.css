@@ -4,9 +4,31 @@
     justify-content: center;
 }
 
+.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.column p {
+    margin: 0;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.center-x {
+    justify-content: center;
+}
+
+.center-y {
+    align-items: center;
+}
+
 .table {
     border-collapse: collapse;
-    width: 90%;
+    width: 100%;
     max-width: 1200px;
     text-align: left;
     font-family: Arial, sans-serif;
@@ -17,6 +39,8 @@
 .table td {
     border: 1px solid #ddd;
     padding: 12px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .table th {
@@ -137,4 +161,180 @@
     /* responsivnost */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
+}
+
+.tabs-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    /* da se spoji na manjem ekranu */
+}
+
+/* Samo tabovi */
+.tabs-container {
+    display: flex;
+    gap: 10px;
+}
+
+/* Tab dugmad */
+.tab-btn {
+    padding: 8px 16px;
+    min-width: 120px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f2f2f2;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.tab-btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Dugme za CSV upload */
+.upload-btn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #218838;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* za bolji scroll na mobilnim uređajima */
+}
+
+.back-btn {
+    padding: 8px 16px;
+    max-width: 120px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f2f2f2;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.back-btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.btn-primary {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow-y: auto;
+    margin-bottom: 200px;
+}
+
+.modal {
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.popup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.popup-form label {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.popup-form input,
+.popup-form select,
+.popup-form textarea {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.popup-form textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.popup-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-primary {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    padding: 8px 16px;
+    background-color: #ccc;
+    color: #333;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #bbb;
 }
