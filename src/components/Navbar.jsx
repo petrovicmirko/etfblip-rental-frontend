@@ -1,16 +1,31 @@
 import React from "react";
+import { Box, IconButton, Typography } from "@mui/material";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const Navbar = ({ onLogout }) => {
     return (
-        <nav className="bg-blue-600 text-white px-6 py-3 flex justify-between items-center">
-            <h1 className="text-xl font-bold">Moja Aplikacija</h1>
-            <button
+        <Box
+            sx={{
+                backgroundColor: "#2C3E50",
+                color: "#ECF0F1",
+                px: 3,
+                py: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+            }}
+        >
+            <Typography variant="h6" fontWeight="bold">Rental system</Typography>
+            <IconButton
                 onClick={onLogout}
-                className="bg-red-500 px-4 py-2 rounded hover:bg-red-600"
+                sx={{
+                    color: "#ECF0F1",
+                    "&:hover": { color: "#1ABC9C" },
+                }}
             >
-                Logout
-            </button>
-        </nav>
+                <LogoutIcon />
+            </IconButton>
+        </Box>
     );
 };
 

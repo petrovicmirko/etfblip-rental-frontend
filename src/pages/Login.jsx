@@ -1,41 +1,40 @@
 import { useState } from "react";
-import httpApi from "../http/httpApi";
 import { useNavigate } from "react-router-dom";
+import {
+    Box,
+    Button,
+    Container,
+    TextField,
+    Typography,
+    Paper,
+    CircularProgress,
+} from "@mui/material";
+import httpApi from "../http/httpApi";
 
 const Login = ({ setToken, setRole }) => {
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        setLoading(true);
 
         try {
             const response = await httpApi.post("/auth/login", { username, password });
             const data = response.data;
-            console.log("Login response:", data);
+
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);
 
             setToken(data.token);
             setRole(data.role);
 
-            // alert(`Prijava uspješna! 🎉\nUloga: ${data.role}`);
-
-            if (data.role === "ADMIN") {
-                navigate("/admin");
-                console.log("Navigating to /admin with role:", data.role);
-            } else if (data.role === "OPERATOR") {
-                navigate("/operator");
-                console.log("Navigating to /operator with role:", data.role);
-            } else if (data.role === "MANAGER") {
-                navigate("/manager");
-            } else {
-                navigate("/dashboard");
-                console.log("Navigating to /dashboard with role:", data.role);
-            }
-
+            if (data.role === "ADMIN") navigate("/admin");
+            else if (data.role === "OPERATOR") navigate("/operator");
+            else if (data.role === "MANAGER") navigate("/manager");
+            else navigate("/dashboard");
         } catch (err) {
             if (err.response && err.response.status === 401) {
                 alert("Neispravni podaci za prijavu ❌");
@@ -43,102 +42,89 @@ const Login = ({ setToken, setRole }) => {
                 console.error(err);
                 alert("Ne mogu da se povežem sa serverom.");
             }
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div
-            style={{
-                top: 0,
-                left: 0,
-                position: "fixed",
+        <Box
+            sx={{
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
                 alignItems: "center",
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                justifyContent: "center",
+                minHeight: "100vh",
+                background: "linear-gradient(135deg, #1976d2 0%, #512da8 100%)",
             }}
         >
-
-            <h1
-                style={{
-                    color: "#fff",
-                    marginBottom: "50px",
-                    textAlign: "center",
-                    fontSize: "2rem",
-                    fontWeight: "bold",
-                    letterSpacing: "1px",
-                }}
-            >
-                Dobrodošli!
-            </h1>
-
-            <form
-                onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "20px",
-                    padding: "40px",
-                    borderRadius: "15px",
-                    width: "350px",
-                    background: "rgba(255, 255, 255, 0.15)",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                }}
-            >
-                <h2 style={{ textAlign: "center", color: "#fff", marginBottom: "10px" }}>
-                    Prijava
-                </h2>
-                <input
-                    type="text"
-                    placeholder="Korisničko ime"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    style={{
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "1px solid #ccc",
-                        outline: "none",
+            <Container maxWidth="xs">
+                <Paper
+                    elevation={6}
+                    sx={{
+                        p: 4,
+                        borderRadius: 3,
+                        textAlign: "center",
+                        backgroundColor: "rgba(255,255,255,0.95)",
                     }}
-                />
-                <input
-                    type="password"
-                    placeholder="Lozinka"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    style={{
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "1px solid #ccc",
-                        outline: "none",
-                    }}
-                />
-                <button
-                    type="submit"
-                    style={{
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "none",
-                        background: "linear-gradient(90deg, #667eea, #764ba2)",
-                        color: "#fff",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        transition: "0.3s",
-                    }}
-                    onMouseOver={(e) => (e.target.style.opacity = "0.9")}
-                    onMouseOut={(e) => (e.target.style.opacity = "1")}
                 >
-                    Prijavi se
-                </button>
-            </form>
-        </div>
+                    <Typography
+                        variant="h5"
+                        fontWeight="bold"
+                        gutterBottom
+                        color="primary"
+                    >
+                        Dobrodošli 👋
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
+                        Prijavite se na svoj nalog
+                    </Typography>
+
+                    <form onSubmit={handleSubmit}>
+                        <TextField
+                            fullWidth
+                            label="Korisničko ime"
+                            variant="outlined"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            sx={{ mb: 2 }}
+                            required
+                        />
+
+                        <TextField
+                            fullWidth
+                            label="Lozinka"
+                            type="password"
+                            variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            sx={{ mb: 3 }}
+                            required
+                        />
+
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            disabled={loading}
+                            sx={{
+                                py: 1.2,
+                                fontWeight: "bold",
+                                fontSize: "1rem",
+                                textTransform: "none",
+                            }}
+                        >
+                            {loading ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+                                "Prijavi se"
+                            )}
+                        </Button>
+                    </form>
+                </Paper>
+            </Container>
+        </Box>
     );
 };
 

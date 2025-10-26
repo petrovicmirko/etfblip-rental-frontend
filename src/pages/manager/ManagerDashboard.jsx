@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "../DashboardLayout";
 
 import StatisticsPage from "./StatisticsPage";
@@ -11,12 +11,13 @@ import ManufacturersPage from "../admin/ManufacturersPage";
 import RentalsPage from "../operator/RentalsPage";
 import VehiclesMapPage from "../operator/VehiclesMapPage";
 import ReportMalfunctionPage from "../operator/ReportMalfunctionPage";
+import VehicleDetailsPage from "../admin/VehicleDetailsPage";
 
 const ManagerDashboard = () => {
     return (
         <Routes>
             <Route element={<DashboardLayout role="MANAGER" />}>
-                <Route index element={<StatisticsPage />} />
+                <Route index element={<Navigate to="statistics" replace />} />
                 <Route path="statistics" element={<StatisticsPage />} />
                 <Route path="pricing" element={<PricingPage />} />
                 <Route path="vehicles" element={<VehiclesPage />} />
@@ -25,6 +26,8 @@ const ManagerDashboard = () => {
                 <Route path="rentals" element={<RentalsPage />} />
                 <Route path="map" element={<VehiclesMapPage />} />
                 <Route path="report-malfunction" element={<ReportMalfunctionPage />} />
+
+                <Route path="vehicles/vehicleDetails" element={<VehicleDetailsPage />} />
             </Route>
         </Routes>
     );

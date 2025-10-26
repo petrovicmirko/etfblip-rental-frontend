@@ -1,7 +1,16 @@
 import httpApi from "../http/httpApi";
 
-export const getVehicles = async () => {
-    const response = await httpApi.get("/api/vehicles");
+/// TODO: Handle later
+
+// export const getVehicles = async () => {
+//     const response = await httpApi.get("/api/vehicles");
+//     return response.data;
+// };
+
+export const getVehicles = async (page = 0, size = 5, sortBy = "id", direction = "asc") => {
+    const response = await httpApi.get("/api/vehicles", {
+        params: { page, size, sortBy, direction },
+    });
     return response.data;
 };
 
@@ -11,7 +20,7 @@ export const getVehicleById = async (id) => {
 };
 
 export const createVehicle = async (vehicle) => {
-    const response = await httpApi.post("/api/vehicles", vehicle);
+    const response = await httpApi.post("/api/vehicles/add", vehicle);
     return response.data;
 };
 
@@ -43,3 +52,36 @@ export const updateManufacturer = async (id, manufacturer) => {
 export const deleteManufacturer = async (id) => {
     await httpApi.delete(`/api/manufacturers/${id}`);
 };
+
+export const getAllClients = async () => {
+    const res = await httpApi.get(`/api/users/clients`);
+    return res.data;
+};
+
+export const getAllEmployees = async () => {
+    const res = await httpApi.get(`/api/users/employees`);
+    return res.data;
+};
+
+export const blockClient = async (id) => {
+    await httpApi.put(`/api/users/clients/${id}/block`);
+};
+
+export const unblockClient = async (id) => {
+    await httpApi.put(`/users/clients/${id}/unblock`);
+};
+
+export const addEmployee = async (data) => {
+    const res = await httpApi.post(`/users/employees`, data);
+    return res.data;
+};
+
+export const updateEmployee = async (id, data) => {
+    const res = await httpApi.put(`/users/employees/${id}`, data);
+    return res.data;
+};
+
+export const deleteEmployee = async (id) => {
+    await httpApi.delete(`/users/employees/${id}`);
+};
+
