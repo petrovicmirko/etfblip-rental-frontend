@@ -42,7 +42,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
         const payload = {
             externalId: formData.externalId,
             type,
-            manufacturerId: Number(formData.manufacturerId), // ID proizvođača
+            manufacturerId: Number(formData.manufacturerId),
             model: formData.model,
             purchasePrice: Number(formData.purchasePrice),
             purchaseDate: formData.purchaseDate || null,
@@ -54,9 +54,14 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
         };
 
         try {
-            await createVehicle(payload);
+            const createdVehicle = await createVehicle(payload); // ⬅️ API vraća novo vozilo
             alert("Vehicle added successfully!");
-            if (onVehicleAdded) await onVehicleAdded();
+
+            // ✅ obavijesti parent komponentu (VehiclesPage)
+            if (onVehicleAdded) {
+                onVehicleAdded(createdVehicle);
+            }
+
             onClose();
         } catch (err) {
             console.error("Failed to add vehicle:", err);
