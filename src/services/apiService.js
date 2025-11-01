@@ -14,6 +14,27 @@ export const getVehicles = async (page = 0, size = 5, sortBy = "id", direction =
     return response.data;
 };
 
+export const getCars = async (page = 0, size = 5, sortBy = "id", direction = "asc") => {
+    const response = await httpApi.get("/api/vehicles/cars", {
+        params: { page, size, sortBy, direction },
+    });
+    return response.data;
+};
+
+export const getScooters = async (page = 0, size = 5, sortBy = "id", direction = "asc") => {
+    const response = await httpApi.get("/api/vehicles/scooters", {
+        params: { page, size, sortBy, direction },
+    });
+    return response.data;
+};
+
+export const getBicycles = async (page = 0, size = 5, sortBy = "id", direction = "asc") => {
+    const response = await httpApi.get("/api/vehicles/bicycles", {
+        params: { page, size, sortBy, direction },
+    });
+    return response.data;
+};
+
 export const getVehicleById = async (id) => {
     const response = await httpApi.get(`/api/vehicles/${id}`);
     return response.data;
