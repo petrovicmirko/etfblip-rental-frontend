@@ -40,7 +40,7 @@ export const getVehicleById = async (id) => {
     return response.data;
 };
 
-export const createVehicle = async (vehicle) => {
+export const addVehicle = async (vehicle) => {
     const response = await httpApi.post("/api/vehicles/add", vehicle);
     return response.data;
 };

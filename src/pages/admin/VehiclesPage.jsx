@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { addVehicle } from "../../services/apiService";
+import Papa from "papaparse";
+
 import {
     Container,
     Box,
@@ -144,6 +147,180 @@ const VehiclesPage = () => {
         setShowPopup(false);
     };
 
+    const handleCsvUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        console.log("📂 Odabrani fajl:", file.name);
+
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: async (results) => {
+                console.log("✅ Rezultati CSV parsiranja:", results);
+                if (!Array.isArray(results.data) || results.data.length === 0) {
+                    alert("⚠️ CSV fajl je prazan ili neispravan!");
+                    return;
+                }
+
+                // Parsiranje CSV-a u niz vozila
+                const parsedVehicles = results.data.map((row) => ({
+                    externalId: row.external_id || "",
+                    type: row.type?.toUpperCase() || activeTab,
+                    manufacturerId: Number(row.manufacturer_id) || 0,
+                    model: row.model || "N/A",
+                    purchasePrice: Number(row.purchase_price) || 0,
+                    purchaseDate: row.purchase_date || null,
+                    description: row.description || "",
+                    autonomyKm: row.autonomy_km ? Number(row.autonomy_km) : null,
+                    maxSpeedKmh: row.max_speed_kmh ? Number(row.max_speed_kmh) : null,
+                    isBroken:
+                        row.is_broken?.toString().trim().toUpperCase() === "TRUE" ||
+                        row.is_broken?.toString().trim() === "1",
+                    isRented:
+                        row.is_rented?.toString().trim().toUpperCase() === "TRUE" ||
+                        row.is_rented?.toString().trim() === "1",
+                }));
+
+                console.log(`🔍 Ukupno učitano ${parsedVehicles.length} vozila iz CSV-a.`);
+
+                let successful = 0;
+
+                // ⏳ Pokušaj upisa svakog vozila u bazu
+                for (const [index, vehicle] of parsedVehicles.entries()) {
+                    try {
+                        const savedVehicle = await addVehicle(vehicle);
+                        console.log(`💾 Uspješno dodano vozilo [${index + 1}]:`, savedVehicle);
+                        successful++;
+
+                        // Ažuriraj state odmah (dodaj novo vozilo u tabelu)
+                        if (savedVehicle.type === activeTab) {
+                            setVehicles((prev) => {
+                                const updated = [savedVehicle, ...prev];
+                                if (updated.length > pageSize) {
+                                    updated.pop(); // zadrži prikaz do pageSize
+                                }
+                                return updated;
+                            });
+
+                            // ✅ Ažuriraj paginaciju samo za aktivni tab
+                            setPages((prev) => {
+                                const old = prev[activeTab];
+                                const newTotalElements = old.totalElements + 1;
+                                const newTotalPages = Math.ceil(newTotalElements / pageSize);
+
+                                return {
+                                    ...prev,
+                                    [activeTab]: {
+                                        ...old,
+                                        totalElements: newTotalElements,
+                                        totalPages: newTotalPages,
+                                    },
+                                };
+                            });
+                        }
+
+                    } catch (err) {
+                        console.warn(`⚠️ Neuspješan upis vozila [${index + 1}]:`, err.message);
+                        // Nastavi dalje – preskače to vozilo
+                    }
+                }
+
+                alert(`✅ Uspješno upisano ${successful} od ${parsedVehicles.length} vozila!`);
+
+                // 🔁 Nakon što su sva vozila obrađena, osvježi prikaz
+                await fetchForActiveTab();
+
+                e.target.value = null; // reset input
+            },
+            error: (err) => {
+                console.error("❌ CSV parsing error:", err);
+                alert("❌ Failed to parse CSV file.");
+            },
+        });
+    };
+
+    // const handleCsvUpload = (e) => {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+
+    //     console.log("📂 Odabrani fajl:", file.name);
+
+    //     Papa.parse(file, {
+    //         header: true,
+    //         skipEmptyLines: true,
+    //         complete: (results) => {
+    //             console.log("✅ Rezultati CSV parsiranja:", results);
+    //             console.log("📄 Sirovi podaci:", results.data);
+
+    //             if (!Array.isArray(results.data) || results.data.length === 0) {
+    //                 console.warn("⚠️ CSV fajl je prazan ili nije ispravno formatiran.");
+    //                 alert("CSV fajl je prazan ili neispravan!");
+    //                 return;
+    //             }
+
+    //             const parsedVehicles = results.data.map((row, index) => {
+    //                 const vehicle = {
+    //                     id: Date.now() + Math.random(), // privremeni ID dok nema backend
+    //                     externalId: row.external_id || "",
+    //                     type: row.type?.toUpperCase() || activeTab,
+    //                     manufacturerId: Number(row.manufacturer_id) || 0,
+    //                     model: row.model || "N/A",
+    //                     purchasePrice: Number(row.purchase_price) || 0,
+    //                     purchaseDate: row.purchase_date || null,
+    //                     description: row.description || "",
+    //                     autonomyKm: row.autonomy_km ? Number(row.autonomy_km) : null,
+    //                     maxSpeedKmh: row.max_speed_kmh ? Number(row.max_speed_kmh) : null,
+    //                     isBroken:
+    //                         row.is_broken?.toString().trim().toUpperCase() === "TRUE" ||
+    //                         row.is_broken?.toString().trim() === "1",
+    //                     isRented:
+    //                         row.is_rented?.toString().trim().toUpperCase() === "TRUE" ||
+    //                         row.is_rented?.toString().trim() === "1",
+    //                 };
+
+    //                 console.log(`🚗 Vozilo [${index + 1}]:`, vehicle);
+    //                 return vehicle;
+    //             });
+
+    //             console.log(`✅ Ukupno učitano vozila: ${parsedVehicles.length}`);
+
+    //             // Dodaj u postojeći state, simulirajući učitavanje sa API-ja
+    //             setVehicles((prev) => {
+    //                 const updated = [...parsedVehicles, ...prev];
+    //                 console.log("📊 Novi vehicles state:", updated);
+    //                 return updated;
+    //             });
+
+    //             // Ažuriraj paginaciju
+    //             setPages((prev) => {
+    //                 const old = prev[activeTab];
+    //                 const newTotalElements = old.totalElements + parsedVehicles.length;
+    //                 const newTotalPages = Math.ceil(newTotalElements / pageSize);
+
+    //                 const updatedPages = {
+    //                     ...prev,
+    //                     [activeTab]: {
+    //                         ...old,
+    //                         totalElements: newTotalElements,
+    //                         totalPages: newTotalPages,
+    //                     },
+    //                 };
+
+    //                 console.log("📄 Novi pagination state:", updatedPages);
+    //                 return updatedPages;
+    //             });
+
+    //             alert(`✅ Uspješno učitano ${parsedVehicles.length} vozila iz CSV fajla!`);
+    //             e.target.value = null; // resetuj input
+    //         },
+    //         error: (err) => {
+    //             console.error("❌ CSV parsing error:", err);
+    //             alert("❌ Failed to parse CSV file.");
+    //         },
+    //     });
+    // };
+
     const { totalPages: activeTotalPages } = pages[activeTab] || { totalPages: 0 };
 
     if (loading)
@@ -194,7 +371,7 @@ const VehiclesPage = () => {
 
                     <Button variant="outlined" color="success" component="label" startIcon={<UploadFileIcon />}>
                         Upload CSV
-                        <input type="file" accept=".csv" hidden />
+                        <input type="file" accept=".csv" hidden onChange={handleCsvUpload} />
                     </Button>
                 </Box>
             </Box>
