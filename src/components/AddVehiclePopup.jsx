@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createVehicle, getManufacturers } from "../services/apiService";
+import { addVehicle, getManufacturers } from "../services/apiService";
 import { Box, Paper, TextField, Button, Typography, MenuItem, CircularProgress } from "@mui/material";
 
 const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" }) => {
@@ -54,7 +54,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
         };
 
         try {
-            const createdVehicle = await createVehicle(payload); // ⬅️ API vraća novo vozilo
+            const createdVehicle = await addVehicle(payload); // ⬅️ API vraća novo vozilo
             alert("Vehicle added successfully!");
 
             // ✅ obavijesti parent komponentu (VehiclesPage)
