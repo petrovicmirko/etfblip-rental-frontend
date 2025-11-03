@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { addVehicle, getManufacturers } from "../services/apiService";
-import { Box, Paper, TextField, Button, Typography, MenuItem, CircularProgress } from "@mui/material";
+import {
+    addVehicle,
+    updateVehicle,
+    getManufacturers,
+} from "../services/apiService";
+import {
+    Box,
+    Paper,
+    TextField,
+    Button,
+    Typography,
+    MenuItem,
+    CircularProgress,
+} from "@mui/material";
 
-const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" }) => {
-    const [type, setType] = useState(initialType);
+const AddVehiclePopup = ({ type, onClose, onVehicleAdded, initialData = null, mode = "add" }) => {
+    const isEditMode = mode === "edit";
+
+    const [vehicleType, setVehicleType] = useState(
+        initialData?.type || type || "CAR"
+    );
+
     const [formData, setFormData] = useState({
-        externalId: "",
-        manufacturerId: "",
-        model: "",
-        purchasePrice: "",
-        purchaseDate: "",
-        description: "",
-        autonomyKm: "",
-        maxSpeedKmh: "",
+        externalId: initialData?.externalId || "",
+        manufacturerId: initialData?.manufacturerId || "",
+        model: initialData?.model || "",
+        purchasePrice: initialData?.purchasePrice || "",
+        purchaseDate: initialData?.purchaseDate || "",
+        description: initialData?.description || "",
+        autonomyKm: initialData?.autonomyKm || "",
+        maxSpeedKmh: initialData?.maxSpeedKmh || "",
     });
+
     const [manufacturers, setManufacturers] = useState([]);
     const [loadingManufacturers, setLoadingManufacturers] = useState(true);
 
@@ -22,6 +40,13 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
             try {
                 const data = await getManufacturers();
                 setManufacturers(data);
+
+                if (initialData?.manufacturer?.id) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        manufacturerId: initialData.manufacturer.id.toString(),
+                    }));
+                }
             } catch (err) {
                 console.error("Failed to load manufacturers:", err);
             } finally {
@@ -29,11 +54,11 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
             }
         };
         fetchManufacturers();
-    }, []);
+    }, [initialData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -41,31 +66,41 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
 
         const payload = {
             externalId: formData.externalId,
-            type,
+            type: vehicleType,
             manufacturerId: Number(formData.manufacturerId),
             model: formData.model,
             purchasePrice: Number(formData.purchasePrice),
             purchaseDate: formData.purchaseDate || null,
-            autonomyKm: type === "BICYCLE" ? Number(formData.autonomyKm) || null : null,
-            maxSpeedKmh: type === "SCOOTER" ? Number(formData.maxSpeedKmh) || null : null,
+            autonomyKm:
+                vehicleType === "BICYCLE" ? Number(formData.autonomyKm) || null : null,
+            maxSpeedKmh:
+                vehicleType === "SCOOTER" ? Number(formData.maxSpeedKmh) || null : null,
             description: formData.description || null,
-            isBroken: false,
-            isRented: false,
+            isBroken: initialData?.isBroken || false,
+            isRented: initialData?.isRented || false,
         };
 
         try {
-            const createdVehicle = await addVehicle(payload); // ⬅️ API vraća novo vozilo
-            alert("Vehicle added successfully!");
+            let savedVehicle;
 
-            // ✅ obavijesti parent komponentu (VehiclesPage)
+            if (isEditMode && initialData?.id) {
+                // 🔁 UPDATE LOGIKA
+                savedVehicle = await updateVehicle(initialData.id, payload);
+                alert("✅ Vehicle updated successfully!");
+            } else {
+                // ➕ ADD LOGIKA
+                savedVehicle = await addVehicle(payload);
+                alert("✅ Vehicle added successfully!");
+            }
+
             if (onVehicleAdded) {
-                onVehicleAdded(createdVehicle);
+                onVehicleAdded(savedVehicle, mode);
             }
 
             onClose();
         } catch (err) {
-            console.error("Failed to add vehicle:", err);
-            alert("Failed to add vehicle.");
+            console.error("❌ Failed to save vehicle:", err);
+            alert("❌ Failed to save vehicle. Check console for details.");
         }
     };
 
@@ -97,18 +132,27 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center">
-                    Add New Vehicle
+                <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    mb={3}
+                    textAlign="center"
+                >
+                    {isEditMode ? "Edit Vehicle" : "Add New Vehicle"}
                 </Typography>
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <form
+                    onSubmit={handleSubmit}
+                    style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+                >
                     {/* Vehicle Type */}
                     <TextField
                         select
                         label="Type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
+                        value={vehicleType}
+                        onChange={(e) => setVehicleType(e.target.value)}
                         fullWidth
+                        disabled={isEditMode} // tip se ne mijenja prilikom editovanja
                     >
                         <MenuItem value="CAR">Car</MenuItem>
                         <MenuItem value="BICYCLE">Bicycle</MenuItem>
@@ -166,7 +210,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
                         fullWidth
                     />
 
-                    {type === "CAR" && (
+                    {vehicleType === "CAR" && (
                         <>
                             <TextField
                                 label="Purchase Date"
@@ -189,7 +233,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
                         </>
                     )}
 
-                    {type === "BICYCLE" && (
+                    {vehicleType === "BICYCLE" && (
                         <TextField
                             label="Autonomy (km)"
                             name="autonomyKm"
@@ -200,7 +244,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
                         />
                     )}
 
-                    {type === "SCOOTER" && (
+                    {vehicleType === "SCOOTER" && (
                         <TextField
                             label="Max Speed (km/h)"
                             name="maxSpeedKmh"
@@ -213,7 +257,7 @@ const AddVehiclePopup = ({ onClose, onVehicleAdded, type: initialType = "CAR" })
 
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
                         <Button variant="contained" type="submit">
-                            Save
+                            {isEditMode ? "Update" : "Save"}
                         </Button>
                         <Button variant="outlined" onClick={onClose}>
                             Cancel

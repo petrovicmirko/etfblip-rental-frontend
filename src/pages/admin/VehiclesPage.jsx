@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { addVehicle } from "../../services/apiService";
+import { addVehicle, deleteVehicle } from "../../services/apiService";
 import Papa from "papaparse";
 
 import {
@@ -82,10 +82,27 @@ const VehiclesPage = () => {
         fetchForActiveTab();
     }, [fetchForActiveTab]);
 
-    const handleDelete = (id, e) => {
+    const handleDelete = async (id, e) => {
         e.stopPropagation();
-        if (window.confirm("Are you sure you want to delete this vehicle?")) {
+        if (!window.confirm("Are you sure you want to delete this vehicle?")) return;
+
+        try {
+            await deleteVehicle(id); // 👈 poziv prema backendu
             setVehicles((prev) => prev.filter((v) => v.id !== id));
+
+            // ✅ ažuriraj paginaciju
+            setPages((prev) => {
+                const old = prev[activeTab];
+                const newTotalElements = Math.max(0, old.totalElements - 1);
+                const newTotalPages = Math.ceil(newTotalElements / pageSize);
+                return {
+                    ...prev,
+                    [activeTab]: { ...old, totalElements: newTotalElements, totalPages: newTotalPages },
+                };
+            });
+        } catch (error) {
+            console.error("❌ Error deleting vehicle:", error);
+            alert("Failed to delete vehicle. Try again.");
         }
     };
 
@@ -108,41 +125,35 @@ const VehiclesPage = () => {
         }));
     };
 
-    const handleVehicleAdded = (newVehicle) => {
+    const handleVehicleAdded = (vehicle, mode = "add") => {
         setVehicles((prev) => {
-            const updated = [newVehicle, ...prev];
-
-            // Ako ima više od pageSize vozila, izbaci posljednje (kao da je backend na sledećoj stranici)
-            if (updated.length > pageSize) {
-                updated.pop();
+            if (mode === "edit") {
+                // 🔁 Zamijeni postojeće vozilo
+                return prev.map((v) => (v.id === vehicle.id ? vehicle : v));
+            } else {
+                // ➕ Dodaj novo vozilo
+                const updated = [vehicle, ...prev];
+                if (updated.length > pageSize) updated.pop();
+                return updated;
             }
+        });
 
-
-            if ((pages[activeTab].totalElements + 1) > pageSize * pages[activeTab].totalPages) {
-                setPages((prev) => ({
+        // Ručno ažuriranje paginacije samo kod dodavanja
+        if (mode === "add") {
+            setPages((prev) => {
+                const old = prev[activeTab];
+                const newTotalElements = old.totalElements + 1;
+                const newTotalPages = Math.ceil(newTotalElements / pageSize);
+                return {
                     ...prev,
-                    [activeTab]: { ...prev[activeTab], page: prev[activeTab].page + 1 }
-                }));
-            }
-
-            return updated;
-        });
-
-        // Ručno ažuriranje paginacije
-        setPages((prev) => {
-            const old = prev[activeTab];
-            const newTotalElements = old.totalElements + 1;
-            const newTotalPages = Math.ceil(newTotalElements / pageSize);
-
-            return {
-                ...prev,
-                [activeTab]: {
-                    ...old,
-                    totalElements: newTotalElements,
-                    totalPages: newTotalPages,
-                },
-            };
-        });
+                    [activeTab]: {
+                        ...old,
+                        totalElements: newTotalElements,
+                        totalPages: newTotalPages,
+                    },
+                };
+            });
+        }
 
         setShowPopup(false);
     };
@@ -424,7 +435,19 @@ const VehiclesPage = () => {
                                         )}
                                     </TableCell>
 
-                                    <TableCell>
+                                    <TableCell sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                                        <Button
+                                            variant="outlined"
+                                            color="primary"
+                                            size="small"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setShowPopup({ type: activeTab, mode: "edit", vehicle });
+                                            }}
+                                        >
+                                            Edit
+                                        </Button>
+
                                         <Button
                                             variant="contained"
                                             color="error"
@@ -453,10 +476,14 @@ const VehiclesPage = () => {
                 </Box>
             )}
 
-            {/* ✅ sada poziva lokalnu funkciju umjesto API refresha */}
             {showPopup && (
                 <AddVehiclePopup
-                    type={showPopup} onClose={() => setShowPopup(null)} onVehicleAdded={handleVehicleAdded} />
+                    type={showPopup.type || showPopup} // podržava i staru i novu logiku
+                    onClose={() => setShowPopup(null)}
+                    onVehicleAdded={handleVehicleAdded}
+                    initialData={showPopup.vehicle || null} // 👈 prosleđuje podatke ako je "edit" mod
+                    mode={showPopup.mode || "add"} // 👈 novi prop
+                />
             )}
         </Container>
     );
