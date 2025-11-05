@@ -106,3 +106,19 @@ export const deleteEmployee = async (id) => {
     await httpApi.delete(`/users/employees/${id}`);
 };
 
+export const getVehicleFailures = (vehicleId) =>
+    httpApi.get(`/api/damages/vehicle/${vehicleId}`).then((res) => res.data);
+
+export const addVehicleFailure = (vehicleId, failureData) =>
+    httpApi.post(`/api/damages/vehicle/${vehicleId}`, failureData).then((res) => res.data);
+
+export const deleteVehicleFailure = (damageId) =>
+    httpApi.delete(`/api/damages/${damageId}`).then((res) => res.data);
+
+export const repairVehicle = (vehicleId) =>
+    httpApi.put(`/api/vehicles/vehicle/${vehicleId}/repair`).then((res) => res.data);
+
+export const getVehicleRentals = async (vehicleId) => {
+    const response = await httpApi.get(`/api/rentals/vehicle/${vehicleId}`);
+    return response.data;
+};
