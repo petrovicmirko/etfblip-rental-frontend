@@ -24,11 +24,11 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import {
     getVehicleById,
-    getVehicleFailures,
+    getVehicleMalfunctions,
     getVehicleRentals,
-    addVehicleFailure,
-    deleteVehicleFailure,
-    repairVehicle,
+    addVehicleMalfunction,
+    deleteVehicleMalfunction,
+    fixVehicle,
 } from "../../services/apiService";
 
 const VehicleDetailsPage = () => {
@@ -37,21 +37,21 @@ const VehicleDetailsPage = () => {
     const vehicleId = location.state?.vehicleId || sessionStorage.getItem("vehicleId");
 
     const [vehicle, setVehicle] = useState(null);
-    const [failures, setFailures] = useState([]);
+    const [malfunctions, setMalfunctions] = useState([]);
     const [rentals, setRentals] = useState([]); // 👈 novo
     const [loading, setLoading] = useState(true);
-    const [showAddFailure, setShowAddFailure] = useState(false);
-    const [newFailure, setNewFailure] = useState({ description: "" });
+    const [showAddMalfunction, setShowAddMalfunction] = useState(false);
+    const [newMalfunction, setNewMalfunction] = useState({ description: "" });
 
     const fetchData = async () => {
         try {
             const [vData, fData, rData] = await Promise.all([
                 getVehicleById(vehicleId),
-                getVehicleFailures(vehicleId),
+                getVehicleMalfunctions(vehicleId),
                 getVehicleRentals(vehicleId), // 👈 dohvatimo iznajmljivanja
             ]);
             setVehicle(vData);
-            setFailures(fData || []);
+            setMalfunctions(fData || []);
             setRentals(rData || []);
         } catch (err) {
             console.error("Failed to load vehicle:", err);
@@ -73,40 +73,40 @@ const VehicleDetailsPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vehicleId]);
 
-    const handleAddFailure = async () => {
-        if (!newFailure.description.trim()) return;
+    const handleAddMalfunction = async () => {
+        if (!newMalfunction.description.trim()) return;
         try {
-            const added = await addVehicleFailure(vehicleId, newFailure);
-            setFailures((prev) => [...prev, added]);
-            setNewFailure({ description: "" });
-            setShowAddFailure(false);
+            const added = await addVehicleMalfunction(vehicleId, newMalfunction);
+            setMalfunctions((prev) => [...prev, added]);
+            setNewMalfunction({ description: "" });
+            setShowAddMalfunction(false);
 
             setVehicle((prev) => ({ ...prev, isBroken: true }));
         } catch (err) {
-            console.error("Failed to add failure:", err);
-            alert("❌ Failed to add failure.");
+            console.error("Failed to add malfunction:", err);
+            alert("❌ Failed to add Malfunction.");
         }
     };
 
-    const handleDeleteFailure = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this failure?")) return;
+    const handleDeleteMalfunction = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this malfunction?")) return;
         try {
-            await deleteVehicleFailure(id);
-            setFailures((prev) => prev.filter((f) => f.id !== id));
+            await deleteVehicleMalfunction(id);
+            setMalfunctions((prev) => prev.filter((f) => f.id !== id));
         } catch (err) {
-            console.error("Failed to delete failure:", err);
+            console.error("Failed to delete malfunction:", err);
         }
     };
 
-    const handleRepair = async () => {
-        if (!window.confirm("Confirm vehicle repair?")) return;
+    const handleFix = async () => {
+        if (!window.confirm("Confirm vehicle fix?")) return;
         try {
-            await repairVehicle(vehicleId);
-            alert("✅ Vehicle repaired successfully!");
+            await fixVehicle(vehicleId);
+            alert("✅ Vehicle fixed successfully!");
             await fetchData(); // 👈 odmah osvježi sve podatke
         } catch (err) {
-            console.error("Repair failed:", err);
-            alert("❌ Failed to repair vehicle.");
+            console.error("Malfunction failed:", err);
+            alert("❌ Failed to malfunction vehicle.");
         }
     };
 
@@ -208,37 +208,37 @@ const VehicleDetailsPage = () => {
                     <Detail label="Rented" value={vehicle.isRented ? "Yes 🔒" : "No ✅"} />
                 </Grid>
 
-                {/* 🔧 Failures Section */}
+                {/* 🔧 Malfunctions Section */}
                 <Divider sx={{ my: 4 }} />
                 <Section
-                    title="Failures"
+                    title="Malfunctions"
                     actions={
                         <>
                             <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}
-                                onClick={() => setShowAddFailure(true)}
+                                onClick={() => setShowAddMalfunction(true)}
                             >
-                                Add Failure
+                                Add Malfunction
                             </Button>
                             <Button
                                 variant="outlined"
                                 color="success"
                                 disabled={!vehicle.isBroken}
-                                onClick={handleRepair}
+                                onClick={handleFix}
                             >
-                                Repair Vehicle
+                                Fix Vehicle
                             </Button>
                         </>
                     }
                 >
-                    {failures.length === 0 ? (
+                    {malfunctions.length === 0 ? (
                         <Typography color="text.secondary">
-                            No failures recorded.
+                            No malfunctions recorded.
                         </Typography>
                     ) : (
                         <List>
-                            {failures.map((f) => (
+                            {malfunctions.map((f) => (
                                 <ListItem key={f.id} divider>
                                     <ListItemText
                                         primary={f.description}
@@ -248,7 +248,7 @@ const VehicleDetailsPage = () => {
                                         <IconButton
                                             edge="end"
                                             color="error"
-                                            onClick={() => handleDeleteFailure(f.id)}
+                                            onClick={() => handleDeleteMalfunction(f.id)}
                                         >
                                             <DeleteIcon />
                                         </IconButton>
@@ -297,12 +297,12 @@ const VehicleDetailsPage = () => {
 
             {/* ➕ Modal za dodavanje kvara */}
             <Dialog
-                open={showAddFailure}
-                onClose={() => setShowAddFailure(false)}
+                open={showAddMalfunction}
+                onClose={() => setShowAddMalfunction(false)}
                 fullWidth
                 maxWidth="sm"
             >
-                <DialogTitle>Add Failure</DialogTitle>
+                <DialogTitle>Add Malfunction</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -311,15 +311,15 @@ const VehicleDetailsPage = () => {
                         type="text"
                         fullWidth
                         variant="outlined"
-                        value={newFailure.description}
+                        value={newMalfunction.description}
                         onChange={(e) =>
-                            setNewFailure({ description: e.target.value })
+                            setNewMalfunction({ description: e.target.value })
                         }
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setShowAddFailure(false)}>Cancel</Button>
-                    <Button onClick={handleAddFailure} variant="contained">
+                    <Button onClick={() => setShowAddMalfunction(false)}>Cancel</Button>
+                    <Button onClick={handleAddMalfunction} variant="contained">
                         Add
                     </Button>
                 </DialogActions>
