@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
     Container,
     Box,
     Typography,
+    IconButton,
     Button,
     Table,
     TableBody,
@@ -11,85 +12,79 @@ import {
     TableHead,
     TableRow,
     Paper,
-    TextField,
     CircularProgress,
     Alert,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
+    Pagination,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
     getManufacturers,
     createManufacturer,
     updateManufacturer,
     deleteManufacturer,
 } from "../../services/apiService";
+import AddManufacturerPopup from "../../components/AddManufacturerPopup";
 
 const ManufacturersPage = () => {
     const [manufacturers, setManufacturers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [newName, setNewName] = useState("");
-    const [editModal, setEditModal] = useState({ open: false, id: null, name: "" });
+    const [showPopup, setShowPopup] = useState(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 5;
 
-    const fetchManufacturers = async () => {
+    const fetchManufacturers = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const data = await getManufacturers();
-            setManufacturers(data);
+            const data = await getManufacturers(page - 1, pageSize, "id", "asc");
+            setManufacturers(data.content || data || []);
+            setTotalPages(data.totalPages || 1);
         } catch (err) {
-            console.error("Failed to load manufacturers:", err);
+            console.error("❌ Failed to load manufacturers:", err);
             setError("Failed to load manufacturers.");
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
 
     useEffect(() => {
         fetchManufacturers();
-    }, []);
+    }, [fetchManufacturers]);
 
-    const handleAdd = async () => {
-        if (!newName.trim()) return;
-        try {
-            await createManufacturer({ name: newName });
-            setNewName("");
-            fetchManufacturers();
-        } catch (err) {
-            console.error("Failed to create manufacturer:", err);
-        }
-    };
-
-    const handleUpdate = async () => {
-        if (!editModal.name.trim()) return;
-        try {
-            await updateManufacturer(editModal.id, { name: editModal.name });
-            handleCloseModal();
-            fetchManufacturers();
-        } catch (err) {
-            console.error("Failed to update manufacturer:", err);
-        }
-    };
-
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, e) => {
+        e.stopPropagation();
         if (!window.confirm("Are you sure you want to delete this manufacturer?")) return;
         try {
             await deleteManufacturer(id);
-            fetchManufacturers();
-        } catch (err) {
-            console.error("Failed to delete manufacturer:", err);
+            setManufacturers((prev) => prev.filter((m) => m.id !== id));
+        } catch (error) {
+            console.error("❌ Error deleting manufacturer:", error);
+            alert("Failed to delete manufacturer. Try again.");
         }
     };
 
-    const handleOpenModal = (m) => {
-        setEditModal({ open: true, id: m.id, name: m.name });
+    const handleManufacturerAdded = (manufacturer, mode = "add") => {
+        setManufacturers((prev) => {
+            if (mode === "edit") {
+                return prev.map((m) => (m.id === manufacturer.id ? manufacturer : m));
+            } else {
+                const updated = [manufacturer, ...prev];
+                if (updated.length > pageSize) updated.pop();
+
+                setTotalPages((prevPages) => Math.ceil((prevPages * pageSize + 1) / pageSize));
+
+                return updated;
+            }
+        });
+        setShowPopup(null);
     };
 
-    const handleCloseModal = () => {
-        setEditModal({ open: false, id: null, name: "" });
+    const handlePageChange = (e, newPage) => {
+        setPage(newPage);
     };
 
     if (loading)
@@ -107,116 +102,105 @@ const ManufacturersPage = () => {
         );
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
             <Typography variant="h4" gutterBottom fontWeight="bold">
-                Manufacturers Management
+                Manufacturer Management
             </Typography>
 
-            {/* === Forma za dodavanje === */}
             <Box
                 sx={{
                     display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: 2,
+                    justifyContent: "flex-end",
                     mb: 3,
+                    gap: 2,
                 }}
             >
-                <TextField
-                    label="Manufacturer name"
-                    variant="outlined"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    sx={{ flex: 1, minWidth: "250px" }}
-                />
                 <Button
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
-                    onClick={handleAdd}
-                    sx={{ height: "56px" }}
+                    onClick={() => setShowPopup({ mode: "add" })}
                 >
-                    Add
+                    Add Manufacturer
                 </Button>
             </Box>
 
-            {/* === Tabela === */}
             <TableContainer component={Paper} elevation={3}>
-                <Table>
+                <Table sx={{
+                    tableLayout: "fixed",
+                    width: "100%",
+                    "& th, & td": {
+                        textAlign: "center",
+                        maxWidth: 150,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                    }
+                }}>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: "#1976d2" }}>
                             <TableCell sx={{ color: "white", fontWeight: "bold" }}>Name</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Country</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Address</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Phone</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Fax</TableCell>
+                            <TableCell sx={{ color: "white", fontWeight: "bold" }}>Email</TableCell>
                             <TableCell sx={{ color: "white", fontWeight: "bold" }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
-
                     <TableBody>
                         {manufacturers.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={2} align="center">
+                                <TableCell colSpan={7} align="center">
                                     No manufacturers found.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             manufacturers.map((m) => (
                                 <TableRow key={m.id} hover>
-                                    {/* Uklonjena kolona za ID */}
                                     <TableCell>{m.name}</TableCell>
-                                    <TableCell>
-                                        <Box sx={{ display: "flex", gap: 1 }}>
-                                            <Button
-                                                variant="outlined"
-                                                color="primary"
-                                                size="small"
-                                                startIcon={<EditIcon />}
-                                                onClick={() => handleOpenModal(m)}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="contained"
-                                                color="error"
-                                                size="small"
-                                                startIcon={<DeleteIcon />}
-                                                onClick={() => handleDelete(m.id)}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </Box>
+                                    <TableCell>{m.country}</TableCell>
+                                    <TableCell >{m.address}</TableCell>
+                                    <TableCell>{m.phone}</TableCell>
+                                    <TableCell>{m.fax}</TableCell>
+                                    <TableCell>{m.email}</TableCell>
+                                    <TableCell sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => setShowPopup({ mode: "edit", manufacturer: m })}
+                                            size="small"
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            color="error"
+                                            onClick={(e) => handleDelete(m.id, e)}
+                                            size="small"
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
                                     </TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
-
                 </Table>
             </TableContainer>
 
-            {/* === Modal za edit === */}
-            <Dialog open={editModal.open} onClose={handleCloseModal}>
-                <DialogTitle>Edit Manufacturer</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Manufacturer name"
-                        fullWidth
-                        variant="outlined"
-                        value={editModal.name}
-                        onChange={(e) =>
-                            setEditModal({ ...editModal, name: e.target.value })
-                        }
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseModal} color="secondary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleUpdate} variant="contained" color="primary">
-                        Save
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {totalPages > 1 && (
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                    <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
+                </Box>
+            )}
+
+            {showPopup && (
+                <AddManufacturerPopup
+                    onClose={() => setShowPopup(null)}
+                    onManufacturerAdded={handleManufacturerAdded}
+                    initialData={showPopup.manufacturer || null}
+                    mode={showPopup.mode || "add"}
+                />
+            )}
         </Container>
     );
 };

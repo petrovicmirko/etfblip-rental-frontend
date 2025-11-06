@@ -55,8 +55,15 @@ export const deleteVehicle = async (id) => {
     return response.data;
 };
 
-export const getManufacturers = async () => {
-    const response = await httpApi.get("/api/manufacturers");
+export const getAllManufacturers = async () => {
+    const response = await httpApi.get("/api/manufacturers/all");
+    return response.data;
+};
+
+export const getManufacturers = async (page = 0, size = 5, sortBy = "id", direction = "asc") => {
+    const response = await httpApi.get("/api/manufacturers", {
+        params: { page, size, sortBy, direction },
+    });
     return response.data;
 };
 
@@ -116,7 +123,7 @@ export const deleteVehicleMalfunction = (damageId) =>
     httpApi.delete(`/api/damages/${damageId}`).then((res) => res.data);
 
 export const fixVehicle = (vehicleId) =>
-    httpApi.put(`/api/fix${vehicleId}`).then((res) => res.data);
+    httpApi.put(`/api/vehicles/fix/${vehicleId}`).then((res) => res.data);
 
 export const getVehicleRentals = async (vehicleId) => {
     const response = await httpApi.get(`/api/rentals/${vehicleId}`);
