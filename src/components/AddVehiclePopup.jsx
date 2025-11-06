@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
     addVehicle,
     updateVehicle,
-    getManufacturers,
+    getAllManufacturers,
 } from "../services/apiService";
 import {
     Box,
@@ -38,7 +38,7 @@ const AddVehiclePopup = ({ type, onClose, onVehicleAdded, initialData = null, mo
     useEffect(() => {
         const fetchManufacturers = async () => {
             try {
-                const data = await getManufacturers();
+                const data = await getAllManufacturers();
                 setManufacturers(data);
 
                 if (initialData?.manufacturer?.id) {

@@ -20,10 +20,12 @@ import {
     CircularProgress,
     Alert,
     Pagination,
+    IconButton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { getCars, getScooters, getBicycles } from "../../services/apiService";
 import AddVehiclePopup from "../../components/AddVehiclePopup";
 
@@ -436,7 +438,7 @@ const VehiclesPage = () => {
                                     </TableCell>
 
                                     <TableCell sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                                        <Button
+                                        <IconButton
                                             variant="outlined"
                                             color="primary"
                                             size="small"
@@ -445,18 +447,17 @@ const VehiclesPage = () => {
                                                 setShowPopup({ type: activeTab, mode: "edit", vehicle });
                                             }}
                                         >
-                                            Edit
-                                        </Button>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
 
-                                        <Button
+                                        <IconButton
                                             variant="contained"
                                             color="error"
                                             size="small"
-                                            startIcon={<DeleteIcon />}
                                             onClick={(e) => handleDelete(vehicle.id, e)}
                                         >
-                                            Delete
-                                        </Button>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
                                     </TableCell>
                                 </TableRow>
                             ))
