@@ -81,22 +81,23 @@ export const deleteManufacturer = async (id) => {
     await httpApi.delete(`/api/manufacturers/${id}`);
 };
 
-export const getAllClients = async () => {
-    const res = await httpApi.get(`/api/users/clients`);
+export const getAllEmployees = async (page = 0, size = 5) => {
+    const res = await httpApi.get(`/api/users/employees`, {
+        params: { page, size },
+    });
     return res.data;
 };
 
-export const getAllEmployees = async () => {
-    const res = await httpApi.get(`/api/users/employees`);
-    return res.data;
+export const getAllClients = async (page = 0, size = 5) => {
+    const res = await httpApi.get(`/api/users/clients`, {
+        params: { page, size },
+    });
+    return res.data; // Page<UserDto>
 };
 
-export const blockClient = async (id) => {
-    await httpApi.put(`/api/users/clients/${id}/block`);
-};
-
-export const unblockClient = async (id) => {
-    await httpApi.put(`/users/clients/${id}/unblock`);
+export const toggleBlockClient = async (id) => {
+    const response = await httpApi.put(`/api/users/block/${id}`);
+    return response.data;
 };
 
 export const addEmployee = async (data) => {
@@ -105,12 +106,12 @@ export const addEmployee = async (data) => {
 };
 
 export const updateEmployee = async (id, data) => {
-    const res = await httpApi.put(`/users/employees/${id}`, data);
+    const res = await httpApi.put(`/api/users/${id}`, data);
     return res.data;
 };
 
 export const deleteEmployee = async (id) => {
-    await httpApi.delete(`/users/employees/${id}`);
+    await httpApi.delete(`/api/users/${id}`);
 };
 
 export const getVehicleMalfunctions = (vehicleId) =>
