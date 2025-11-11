@@ -4,6 +4,7 @@ import DashboardLayout from "../DashboardLayout";
 import RentalsPage from "./RentalsPage";
 import VehiclesMapPage from "./VehiclesMapPage";
 import ReportMalfunctionPage from "./ReportMalfunctionPage";
+import ClientsPage from "./ClientsPage";
 
 const OperatorDashboard = () => {
     return (
@@ -13,7 +14,7 @@ const OperatorDashboard = () => {
                 <Route path="rentals" element={<RentalsPage />} />
                 <Route path="map" element={<VehiclesMapPage />} />
                 <Route path="report-malfunction" element={<ReportMalfunctionPage />} />
-                {/* <Route path="clients" element={<h2>Clients page</h2>} /> */} // import after creating the page on admin side
+                <Route path="clients" element={<ClientsPage />} />
             </Route>
         </Routes>
     );

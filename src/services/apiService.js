@@ -92,7 +92,7 @@ export const getAllClients = async (page = 0, size = 5) => {
     const res = await httpApi.get(`/api/users/clients`, {
         params: { page, size },
     });
-    return res.data; // Page<UserDto>
+    return res.data;
 };
 
 export const toggleBlockClient = async (id) => {
@@ -117,8 +117,8 @@ export const deleteEmployee = async (id) => {
 export const getVehicleMalfunctions = (vehicleId) =>
     httpApi.get(`/api/damages/${vehicleId}`).then((res) => res.data);
 
-export const addVehicleMalfunction = (vehicleId, failureData) =>
-    httpApi.post(`/api/damages/${vehicleId}`, failureData).then((res) => res.data);
+export const addVehicleMalfunction = (externalIdId, description) =>
+    httpApi.post(`/api/damages/${externalIdId}`, { description, }).then((res) => res.data);
 
 export const deleteVehicleMalfunction = (damageId) =>
     httpApi.delete(`/api/damages/${damageId}`).then((res) => res.data);
@@ -129,4 +129,22 @@ export const fixVehicle = (vehicleId) =>
 export const getVehicleRentals = async (vehicleId) => {
     const response = await httpApi.get(`/api/rentals/${vehicleId}`);
     return response.data;
+};
+
+export const getAllRentals = async () => {
+    const response = await httpApi.get(`/api/rentals`);
+    return response.data;
+};
+
+export const reportMalfunction = async (externalId, description) => {
+    try {
+        const response = await httpApi.post(`api/vehicles/malfunction`, {
+            externalId,
+            description,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error reporting malfunction:", error);
+        throw error.response?.data || { error: "Failed to report malfunction" };
+    }
 };
