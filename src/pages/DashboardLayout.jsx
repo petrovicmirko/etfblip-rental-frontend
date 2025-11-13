@@ -32,7 +32,7 @@ const DashboardLayout = ({ role: propRole }) => {
             { to: "/manager/users", label: "Users" },
             { to: "/manager/rentals", label: "Rentals" },
             { to: "/manager/map", label: "Map" },
-            { to: "/operator/clients", label: "Clients" },
+            { to: "/manager/clients", label: "Clients" },
             { to: "/manager/report-malfunction", label: "Report malfunction" },
         ],
     };

@@ -12,6 +12,7 @@ import RentalsPage from "../operator/RentalsPage";
 import VehiclesMapPage from "../operator/VehiclesMapPage";
 import ReportMalfunctionPage from "../operator/ReportMalfunctionPage";
 import VehicleDetailsPage from "../admin/VehicleDetailsPage";
+import ClientsPage from "../operator/ClientsPage";
 
 const ManagerDashboard = () => {
     return (
@@ -25,6 +26,7 @@ const ManagerDashboard = () => {
                 <Route path="users" element={<UsersPage />} />
                 <Route path="rentals" element={<RentalsPage />} />
                 <Route path="map" element={<VehiclesMapPage />} />
+                <Route path="clients" element={<ClientsPage />} />
                 <Route path="report-malfunction" element={<ReportMalfunctionPage />} />
 
                 <Route path="vehicles/vehicleDetails" element={<VehicleDetailsPage />} />
