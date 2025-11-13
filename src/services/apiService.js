@@ -165,3 +165,13 @@ export const getDamageStatistics = async () => {
     const res = await httpApi.get("/api/damages/statistics");
     return res.data;
 };
+
+export const getRentalPrice = async () => {
+    const response = await httpApi.get("/api/prices");
+    return response.data[0]; // jer imaš samo jedan red u tabeli
+};
+
+export const updateRentalPrice = async (id, data) => {
+    const response = await httpApi.put(`/api/prices/${id}`, data);
+    return response.data;
+};
