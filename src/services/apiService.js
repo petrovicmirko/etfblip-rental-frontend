@@ -148,3 +148,20 @@ export const reportMalfunction = async (externalId, description) => {
         throw error.response?.data || { error: "Failed to report malfunction" };
     }
 };
+
+export const getRentalsStatistics = async (month) => {
+    const res = await httpApi.get(`/api/statistics/daily-revenue`, {
+        params: { month },
+    });
+    return res.data;
+};
+
+export const getRevenueByVehicleType = async () => {
+    const res = await httpApi.get("/api/vehicles/revenue-by-type");
+    return res.data;
+};
+
+export const getDamageStatistics = async () => {
+    const res = await httpApi.get("/api/damages/statistics");
+    return res.data;
+};
